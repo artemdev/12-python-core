@@ -14,7 +14,7 @@ class Name(Field):
         self.value = self.validate(value)
 
     def validate(self, value):
-        if value:
+        if value.strip():
             return value
 
         raise ValueError("Name should be present!")
