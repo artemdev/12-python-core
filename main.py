@@ -14,9 +14,10 @@ class Name(Field):
         self.value = self.validate(value)
 
     def validate(self, value):
-        if not value.isalpha():
-            raise ValueError("Name must contain only letters")
-        return value
+        if value:
+            return value
+
+        raise ValueError("Name should be present!")
 
 
 class Phone(Field):
@@ -26,6 +27,7 @@ class Phone(Field):
     def validate(self, value):
         if (value.isdigit() and len(value) == 10):
             return value
+
         raise ValueError("Name must contain only letters")
 
 
@@ -69,7 +71,6 @@ class Record:
 
 
 class AddressBook(UserDict):
-
     def add_record(self, record_instance):
         if (self.find(record_instance.get_name())):
             raise ValueError("Record already exists")
@@ -86,7 +87,6 @@ class AddressBook(UserDict):
     def delete(self, name):
         if self.find(name):
             del self.data[name]
-    # реалізація класу
 
 
 # Створення нової адресної книги
