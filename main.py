@@ -11,7 +11,8 @@ class Field:
 
 class Name(Field):
     def __init__(self, value):
-        self.value = self.validate(value)
+        if self.validate(value):
+            super().__init__(value)
 
     def validate(self, value):
         if value.strip():
@@ -22,7 +23,8 @@ class Name(Field):
 
 class Phone(Field):
     def __init__(self, value):
-        self.value = self.validate(value)
+        if self.validate(value):
+            super().__init__(value)
 
     def validate(self, value):
         if (value.isdigit() and len(value) == 10):
