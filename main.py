@@ -1,19 +1,32 @@
 from collections import UserDict
+from datetime import date, datetime
+
+DEFAULT_DATE_FORMAT = '%m-%d-%Y'
 
 
 class Field:
     def __init__(self, value):
-        self.value = value
+        if self.validate(value):
+            self.value = value
 
     def __str__(self):
         return str(self.value)
 
+    def get(self):
+        if hasattr(self, 'value'):
+            return self.value
+
+    def set(self, value):
+
+        try:
+            self.validate(value)
+
+            return value
+        except Exception as e:
+            print('Validation failed:', str(e))
+
 
 class Name(Field):
-    def __init__(self, value):
-        if self.validate(value):
-            super().__init__(value)
-
     def validate(self, value):
         if value.strip():
             return value
@@ -22,20 +35,23 @@ class Name(Field):
 
 
 class Phone(Field):
-    def __init__(self, value):
-        if self.validate(value):
-            super().__init__(value)
-
     def validate(self, value):
         if (value.isdigit() and len(value) == 10):
             return value
 
-        raise ValueError("Name must contain only letters")
+        raise ValueError("Phone must contain at least 10 digits")
+
+
+class Birthday(Field):
+    def validate(self, value):
+        if not value or datetime.strptime(value, DEFAULT_DATE_FORMAT):
+            return value
 
 
 class Record:
-    def __init__(self, name):
+    def __init__(self, name, birthday=''):
         self.name = Name(name)
+        self.birthday = Birthday(birthday)
         self.phones = []
 
     def __str__(self):
@@ -71,6 +87,26 @@ class Record:
                 self.phones.remove(saved_phone)
                 break
 
+    def days_to_birthday(self):
+        if not self.birthday.get():
+            return None
+
+        birthday_date = datetime.strptime(
+            self.birthday.get(), DEFAULT_DATE_FORMAT).date()
+
+        this_year_birthday = birthday_date.replace(year=date.today().year)
+
+        if this_year_birthday < date.today():
+            this_year_birthday = this_year_birthday.replace(
+                year=this_year_birthday.year + 1)
+
+        days_until_birthday = (this_year_birthday - date.today()).days
+
+        if days_until_birthday == 0:
+            return 'Happy Birthday!'
+        else:
+            return days_until_birthday
+
 
 class AddressBook(UserDict):
     def add_record(self, record_instance):
@@ -90,36 +126,64 @@ class AddressBook(UserDict):
         if self.find(name):
             del self.data[name]
 
+    def iterator(self, N=1):
+        values = list(self.data.values())
+
+        for i in range(0, len(values)):
+            yield values[i:i+N][0]
+
 
 # Створення нової адресної книги
 book = AddressBook()
 
-# Створення запису для John
-john_record = Record("John")
+# # Створення запису для John
+john_record = Record("John1", '12-01-1990')
 john_record.add_phone("1234567890")
 john_record.add_phone("5555555555")
-
-# Додавання запису John до адресної книги
 book.add_record(john_record)
 
-# Створення та додавання нового запису для Jane
-jane_record = Record("Jane")
-jane_record.add_phone("9876543210")
-book.add_record(jane_record)
+book_iterator = book.iterator(1)
 
-# Виведення всіх записів у книзі
-for name, record in book.data.items():
-    print(record)
+for i in book_iterator:
+    print(i)
 
-# Знаходження та редагування телефону для John
-john = book.find("John")
-john.edit_phone("1234567890", "1112223333")
 
-print(john)  # Виведення: Contact name: John, phones: 1112223333; 5555555555
+# john_record2 = Record("John3", '01-09-1190')
+# john_record2.add_phone("1234567890")
+# john_record2.add_phone("5555555555")
 
-# Пошук конкретного телефону у записі John
-found_phone = john.find_phone("5555555555")
-print(f"{john.name}: {found_phone}")  # Виведення: 5555555555
+# john_record3 = Record("John1", '01-09-1190')
+# john_record3.add_phone("1234567890")
+# john_record3.add_phone("5555555555")
 
-# Видалення запису Jane
-book.delete("Jane")
+# book.add_record(john_record2)
+# book.add_record(john_record3)
+
+
+# # print(next(iterator))
+# # Додавання запису John до адресної книги
+# book.add_record(john_record)
+
+# # Створення та додавання нового запису для Jane
+# jane_record = Record("Jane", '09-01-1990')
+# jane_record.add_phone("9876543210")
+# book.add_record(jane_record)
+
+# # Виведення всіх записів у книзі
+# for name, record in book.data.items():
+#     print(record)
+
+# # Знаходження та редагування телефону для John
+# john = book.find("John")
+# john.edit_phone("1234567890", "1112223333")
+
+
+# # Виведення: Contact name: John, phones: 1112223333; 5555555555
+# print('days to birthday', john.days_to_birthday())
+
+# # Пошук конкретного телефону у записі John
+# found_phone = john.find_phone("5555555555")
+# print(f"{john.name}: {found_phone}")  # Виведення: 5555555555
+
+# # Видалення запису Jane
+# book.delete("Jane")
