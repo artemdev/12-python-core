@@ -140,6 +140,7 @@ book = AddressBook()
 john_record = Record("John1", '12-01-1990')
 john_record.add_phone("1234567890")
 john_record.add_phone("5555555555")
+print(john_record.days_to_birthday())
 book.add_record(john_record)
 
 book_iterator = book.iterator(1)
