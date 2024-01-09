@@ -1,7 +1,9 @@
 from collections import UserDict
 from datetime import date, datetime
+import pickle
 
 DEFAULT_DATE_FORMAT = '%m-%d-%Y'
+DEFAULT_STORAGE_FILE_NAME = 'store.bin'
 
 
 class Field:
@@ -110,21 +112,43 @@ class Record:
 
 
 class AddressBook(UserDict):
+    def __init__(self):
+        super().__init__()
+
+        try:
+            self.data = self.load_from_file()
+        except FileNotFoundError:
+            pass
+
     def add_record(self, record_instance):
-        if (self.find(record_instance.get_name())):
+        if (record_instance.get_name() in self.data):
             raise ValueError("Record already exists")
 
         self.data[record_instance.get_name()] = record_instance
 
+        self.save_to_file()
+
         return self.data
 
-    def find(self, name):
+    def find_by_name(self, name):
         if (name in self.data):
-
             return self.data[name]
 
+    def find(self, term):
+        found_records = set()
+
+        for record in self.data.values():
+            if (term in record.get_name()):
+                found_records.add(record)
+
+            for phone_number in record.get_phones():
+                if term in phone_number:
+                    found_records.add(record)
+
+        return list(found_records)
+
     def delete(self, name):
-        if self.find(name):
+        if self.find_by_name(name):
             del self.data[name]
 
     def iterator(self, n=1):
@@ -133,61 +157,30 @@ class AddressBook(UserDict):
         for i in range(0, len(values)):
             yield values[i:i+n][0]
 
+    def save_to_file(self):
+        with open(DEFAULT_STORAGE_FILE_NAME, "wb") as fh:
+            pickle.dump(self.data, fh)
+
+    def load_from_file(self):
+        unpacked = False
+
+        with open(DEFAULT_STORAGE_FILE_NAME, "rb") as fh:
+            unpacked = pickle.load(fh)
+
+        return unpacked
+
 
 # Створення нової адресної книги
 book = AddressBook()
 
 # # Створення запису для John
-john_record = Record("John1", '12-1-1990')
+john_record = Record("11213", '12-1-1990')
 john_record.add_phone("1234567890")
 john_record.add_phone("5555555555")
-print(john_record)
-print(john_record.days_to_birthday())
+
 book.add_record(john_record)
 
+results = book.find('1234')
 
-book_iterator = book.iterator(10)
-
-for i in book_iterator:
-    print(i)
-
-
-# john_record2 = Record("John3", '01-09-1190')
-# john_record2.add_phone("1234567890")
-# john_record2.add_phone("5555555555")
-
-# john_record3 = Record("John1", '01-09-1190')
-# john_record3.add_phone("1234567890")
-# john_record3.add_phone("5555555555")
-
-# book.add_record(john_record2)
-# book.add_record(john_record3)
-
-
-# # print(next(iterator))
-# # Додавання запису John до адресної книги
-# book.add_record(john_record)
-
-# # Створення та додавання нового запису для Jane
-# jane_record = Record("Jane", '09-01-1990')
-# jane_record.add_phone("9876543210")
-# book.add_record(jane_record)
-
-# # Виведення всіх записів у книзі
-# for name, record in book.data.items():
-#     print(record)
-
-# # Знаходження та редагування телефону для John
-# john = book.find("John")
-# john.edit_phone("1234567890", "1112223333")
-
-
-# # Виведення: Contact name: John, phones: 1112223333; 5555555555
-# print('days to birthday', john.days_to_birthday())
-
-# # Пошук конкретного телефону у записі John
-# found_phone = john.find_phone("5555555555")
-# print(f"{john.name}: {found_phone}")  # Виведення: 5555555555
-
-# # Видалення запису Jane
-# book.delete("Jane")
+for result in results:
+    print(result)
