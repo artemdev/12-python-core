@@ -7,23 +7,25 @@ DEFAULT_DATE_FORMAT = '%m-%d-%Y'
 class Field:
     def __init__(self, value):
         if self.validate(value):
-            self.value = value
+            self.__value = value
 
     def __str__(self):
         return str(self.value)
 
-    def get(self):
-        if hasattr(self, 'value'):
-            return self.value
+    @property
+    def value(self):
+        return self.__value
 
+    @value.setter
     def set(self, value):
+        validated_value = self.validate(value)
 
-        try:
-            self.validate(value)
+        if validated_value:
+            self.__value = validated_value
 
-            return value
-        except Exception as e:
-            print('Validation failed:', str(e))
+    def validate(self, value):
+        raise AttributeError(
+            f'Please define validate method in {self.__class__.__name__} class', )
 
 
 class Name(Field):
@@ -88,11 +90,11 @@ class Record:
                 break
 
     def days_to_birthday(self):
-        if not self.birthday.get():
+        if not self.birthday.value:
             return None
 
         birthday_date = datetime.strptime(
-            self.birthday.get(), DEFAULT_DATE_FORMAT).date()
+            self.birthday.value, DEFAULT_DATE_FORMAT).date()
 
         this_year_birthday = birthday_date.replace(year=date.today().year)
 
@@ -126,20 +128,21 @@ class AddressBook(UserDict):
         if self.find(name):
             del self.data[name]
 
-    def iterator(self, N=1):
+    def iterator(self, n=1):
         values = list(self.data.values())
 
         for i in range(0, len(values)):
-            yield values[i:i+N][0]
+            yield values[i:i+n][0]
 
 
 # Створення нової адресної книги
 book = AddressBook()
 
 # # Створення запису для John
-john_record = Record("John1", '12-01-1990')
+john_record = Record("John1", '12-1-1990')
 john_record.add_phone("1234567890")
 john_record.add_phone("5555555555")
+print(john_record)
 print(john_record.days_to_birthday())
 book.add_record(john_record)
 
