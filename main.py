@@ -6,8 +6,8 @@ DEFAULT_DATE_FORMAT = '%m-%d-%Y'
 
 class Field:
     def __init__(self, value):
-        if self.validate(value):
-            self.__value = value
+        self.__value = None
+        self.value = value
 
     def __str__(self):
         return str(self.value)
@@ -17,15 +17,14 @@ class Field:
         return self.__value
 
     @value.setter
-    def set(self, value):
-        validated_value = self.validate(value)
-
-        if validated_value:
-            self.__value = validated_value
+    def value(self, value):
+        self.validate(value)
+        
+        self.__value = value
 
     def validate(self, value):
-        raise AttributeError(
-            f'Please define validate method in {self.__class__.__name__} class', )
+        raise NotImplementedError(
+            "Please define validation method in subclass")
 
 
 class Name(Field):
