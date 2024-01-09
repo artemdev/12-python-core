@@ -19,12 +19,12 @@ class Field:
     @value.setter
     def value(self, value):
         self.validate(value)
-        
+
         self.__value = value
 
     def validate(self, value):
         raise NotImplementedError(
-            "Please define validation method in subclass")
+            f"Please define validation method in subclass {self.__class__.__name__}")
 
 
 class Name(Field):
@@ -145,7 +145,8 @@ print(john_record)
 print(john_record.days_to_birthday())
 book.add_record(john_record)
 
-book_iterator = book.iterator(1)
+
+book_iterator = book.iterator(10)
 
 for i in book_iterator:
     print(i)
